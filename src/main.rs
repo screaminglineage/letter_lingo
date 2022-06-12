@@ -15,26 +15,15 @@ fn main() {
 
     hints.push(get_hint(&vec![], &"".to_string()));
     while i > 0 {
-        let disclaimer = if i != 1 {
-            format!(
-                "{} {}",
-                (i).to_string().blue(),
-                "Tries Remaining...".blue()
-            )
-        } else {
-            format!(
-                "{} {}",
-                (i).to_string().red(),
-                "Try Remaining...".blue()
-            )
-        };
+
         if hints.len() > 1 {
             println!("{}", "--------------------".purple());
         }
-        println!("\n{}", disclaimer);
+        println!("\n{}", get_disclaim(i));
 
         let user_input = take_input(format!("{}", "Guess the word: ".purple()));
-        print!("\x1B[2J\x1B[1;1H");
+        print!("\x1B[2J\x1B[1;1H"); // Clears the screen
+        
         if user_input.len() != WORD_LENGTH {
             println!("{} {} {}", "Only words with".blue(), WORD_LENGTH.to_string().blue(), "letters are accepted".blue());
             display_hints(&hints);
@@ -194,4 +183,23 @@ fn display_hints(hints: &Vec<String>) {
     for hint in hints {
         println!("{}", hint);
     }
+}
+
+
+fn get_disclaim(i: u32) -> String {
+    let disclaimer = 
+        if i != 1 {
+            format!(
+                "{} {}",
+                (i).to_string().blue(),
+                "Tries Remaining...".blue()
+            )
+        } else {
+            format!(
+                "{} {}",
+                (i).to_string().red(),
+                "Try Remaining...".blue()
+            )
+        };
+    disclaimer
 }
