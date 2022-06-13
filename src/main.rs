@@ -1,35 +1,40 @@
+use colored::Colorize;
 use std::io;
 use std::io::Write;
-use colored::Colorize;
-
 
 const MAX_TRIES: u32 = 6;
 const WORD_LENGTH: usize = 5;
 
-
 fn main() {
-    let answer = "swept".to_string();
+    clear();
+    let answer = "roast".to_string();
     let mut hints: Vec<String> = Vec::new();
     let mut won = false;
-    let mut i = MAX_TRIES;
 
-    hints.push(get_hint(&vec![], &"".to_string()));
-    while i > 0 {
+    for i in 0..MAX_TRIES {
+        // Displays the disclaimer and user prompt
+        let disclaimer = get_disclaim(MAX_TRIES - i, &hints);
+        println!("{}", disclaimer);
+        let mut user_input = take_input(format!("{}", "Guess the word: ".purple()));
+        clear();
+        // print!("\x1B[2J\x1B[1;1H"); // Clears the screen
 
-        if hints.len() > 1 {
-            println!("{}", "--------------------".purple());
-        }
-        println!("\n{}", get_disclaim(i));
-
-        let user_input = take_input(format!("{}", "Guess the word: ".purple()));
-        print!("\x1B[2J\x1B[1;1H"); // Clears the screen
-        
-        if user_input.len() != WORD_LENGTH {
-            println!("{} {} {}", "Only words with".blue(), WORD_LENGTH.to_string().blue(), "letters are accepted".blue());
+        // Keeps looping until a valid word is entered
+        while user_input.len() != WORD_LENGTH {
+            println!(
+                "{} {} {}",
+                "Only words with".blue(),
+                WORD_LENGTH.to_string().blue(),
+                "letters are accepted!".blue()
+            );
             display_hints(&hints);
-            continue;
+            println!("{}", disclaimer);
+            user_input = take_input(format!("{}", "Guess the word: ".purple()));
+            clear();
+            // print!("\x1B[2J\x1B[1;1H"); // Clears the screen
         }
 
+        // Compares word and actual answer, and then displays hints
         let checks = check_word(&answer, &user_input);
         hints.push(get_hint(&checks, &user_input.to_ascii_uppercase()));
         display_hints(&hints);
@@ -38,8 +43,9 @@ fn main() {
             won = true;
             break;
         }
-        i -= 1;
     }
+
+    // End Screen
     if won {
         println!("\n{}", "You Won!".purple());
     } else {
@@ -57,7 +63,6 @@ fn main() {
         "to Continue...".blue()
     ));
 }
-
 
 /*  Compares answer and a word and returns a char vector containing
     - g -> letter in answer and correct position
@@ -118,7 +123,6 @@ fn check_word(answer: &String, word: &String) -> Vec<char> {
     check_vec
 }
 
-
 // Displays a prompt to the user and returns their input
 fn take_input(prompt: String) -> String {
     let mut input = String::new();
@@ -127,11 +131,8 @@ fn take_input(prompt: String) -> String {
     io::stdin()
         .read_line(&mut input)
         .expect("Failed to read input");
-    input
-        .trim()
-        .to_ascii_lowercase()
+    input.trim().to_ascii_lowercase()
 }
-
 
 // Waits for ENTER to be pressed
 fn pause(prompt: String) {
@@ -141,42 +142,40 @@ fn pause(prompt: String) {
     println!("\n\n\n\n\n\n\n")
 }
 
-
 // Converts word into an char vector
 fn get_letters(word: &String) -> Vec<char> {
     let letters: Vec<char> = word.chars().collect();
     letters
 }
 
-/*  Returns a string containing the letters of the word 
+/*  Returns a string containing the letters of the word
     in the following colour scheme:
     - green -> letter in answer and correct position
     - yellow -> letter in answer but wrong position
     - white -> letter not in answer
     - red -> anything else (shouldnt normally be possible)
 */
-fn get_hint(checks: &Vec<char>, word: &String) -> String{
+fn get_hint(checks: &Vec<char>, word: &String) -> String {
     let mut hint = String::new();
     if word.len() != 0 {
         let letters: Vec<char> = word.chars().collect();
         for i in 0..letters.len() {
             let letter = letters[i].to_string();
-            
+
             hint = format!(
-                    "{}{}",
-                    hint, 
-                    match checks[i] {
-                        'g' => letter.green().bold(),
-                        'y' => letter.bright_yellow().bold(),
-                        'w' => letter.white(),
-                        _ => letter.red().bold(),
-                    }
+                "{}{}",
+                hint,
+                match checks[i] {
+                    'g' => letter.green().bold(),
+                    'y' => letter.bright_yellow().bold(),
+                    'w' => letter.white(),
+                    _ => letter.red().bold(),
+                }
             );
         }
     }
-    return hint 
+    return hint;
 }
-
 
 fn display_hints(hints: &Vec<String>) {
     println!("");
@@ -185,21 +184,22 @@ fn display_hints(hints: &Vec<String>) {
     }
 }
 
-
-fn get_disclaim(i: u32) -> String {
-    let disclaimer = 
-        if i != 1 {
-            format!(
-                "{} {}",
-                (i).to_string().blue(),
-                "Tries Remaining...".blue()
-            )
-        } else {
-            format!(
-                "{} {}",
-                (i).to_string().red(),
-                "Try Remaining...".blue()
-            )
-        };
-    disclaimer
+fn get_disclaim(i: u32, hints: &Vec<String>) -> String {
+    let disclaimer = if i != 1 {
+        format!("{} {}", (i).to_string().blue(), "Tries Remaining...".blue())
+    } else {
+        format!("{} {}", (i).to_string().red(), "Try Remaining...".blue())
+    };
+    if hints.len() > 0 {
+        return format!("{}\n{}", "--------------------".purple(), disclaimer);
+    } else {
+        return disclaimer;
+    }
 }
+
+
+fn clear() {
+    for _ in 0..1000 {
+        println!("\n");
+    }
+} 
