@@ -13,11 +13,10 @@ fn main() {
 
     for i in 0..MAX_TRIES {
         // Displays the disclaimer and user prompt
-        let disclaimer = get_disclaim(MAX_TRIES - i, &hints);
+        let disclaimer = get_disclaimer(MAX_TRIES - i, &hints);
         println!("{}", disclaimer);
         let mut user_input = take_input(format!("{}", "Guess the word: ".purple()));
         clear();
-        // print!("\x1B[2J\x1B[1;1H"); // Clears the screen
 
         // Keeps looping until a valid word is entered
         while user_input.len() != WORD_LENGTH {
@@ -31,7 +30,6 @@ fn main() {
             println!("{}", disclaimer);
             user_input = take_input(format!("{}", "Guess the word: ".purple()));
             clear();
-            // print!("\x1B[2J\x1B[1;1H"); // Clears the screen
         }
 
         // Compares word and actual answer, and then displays hints
@@ -44,18 +42,7 @@ fn main() {
             break;
         }
     }
-
-    // End Screen
-    if won {
-        println!("\n{}", "You Won!".purple());
-    } else {
-        println!("\n{}", "You Lost!".red());
-        println!(
-            "{} {}",
-            "The word was".green(),
-            answer.to_ascii_uppercase().green().bold()
-        );
-    }
+    show_end_screen(won, &answer);
     pause(format!(
         "{} {} {}",
         "Press".blue(),
@@ -73,53 +60,11 @@ fn check_word(answer: &String, word: &String) -> Vec<char> {
     let mut ans_letters = get_letters(answer);
     let mut word_letters = get_letters(word);
     let mut check_vec: Vec<char> = Vec::new();
-    let length = WORD_LENGTH;
-    let mut check: char;
 
-    /* Checks for characters which are in the correct
-       position and removes them after marking the position
-       as correct in the check_vec vector
-    */
-    for i in 0..length {
-        if ans_letters[i] == word_letters[i] {
-            ans_letters[i] = ' ';
-            word_letters[i] = ' ';
-            check = 'g';
-        } else {
-            check = ' ';
-        }
-        check_vec.push(check);
-    }
-
-    /* Checks for every character in the input word which
-       also present in the answer and removes them both after
-       marking the position as wrong position but correct letter
-       in the check_vec vector
-    */
-    for i in 0..length {
-        let mut flag = false;
-
-        if check_vec[i] == ' ' {
-            for _ in 0..length {
-                let letter = word_letters[i];
-                if ans_letters.contains(&letter) {
-                    let pos = ans_letters
-                        .iter()
-                        .position(|&x| x == letter)
-                        .expect("Failed to find letter in answer");
-
-                    flag = true;
-                    check_vec[i] = 'y';
-                    word_letters[i] = ' ';
-                    ans_letters[pos] = ' ';
-                    break;
-                }
-            }
-            if flag == false {
-                check_vec[i] = 'w';
-            }
-        }
-    }
+    // Marks the letters (green, yellow, white) in a vector
+    // and returns the vector
+    mark_correct(&mut ans_letters, &mut word_letters, &mut check_vec);
+    mark_incorrect(&mut ans_letters, &mut word_letters, &mut check_vec);
     check_vec
 }
 
@@ -150,9 +95,9 @@ fn get_letters(word: &String) -> Vec<char> {
 
 /*  Returns a string containing the letters of the word
     in the following colour scheme:
-    - green -> letter in answer and correct position
-    - yellow -> letter in answer but wrong position
-    - white -> letter not in answer
+    - green -> letter in answer and correct position ('g')
+    - yellow -> letter in answer but wrong position ('y')
+    - white -> letter not in answer ('w')
     - red -> anything else (shouldnt normally be possible)
 */
 fn get_hint(checks: &Vec<char>, word: &String) -> String {
@@ -166,8 +111,8 @@ fn get_hint(checks: &Vec<char>, word: &String) -> String {
                 "{}{}",
                 hint,
                 match checks[i] {
-                    'g' => letter.green().bold(),
-                    'y' => letter.bright_yellow().bold(),
+                    'g' => letter.truecolor(0, 255, 64).bold(),
+                    'y' => letter.truecolor(246, 255, 0).bold(),
                     'w' => letter.white(),
                     _ => letter.red().bold(),
                 }
@@ -177,6 +122,8 @@ fn get_hint(checks: &Vec<char>, word: &String) -> String {
     return hint;
 }
 
+// Prints the contents of a vector containing all the past
+// attempts with the letters highlighted for hints
 fn display_hints(hints: &Vec<String>) {
     println!("");
     for hint in hints {
@@ -184,7 +131,8 @@ fn display_hints(hints: &Vec<String>) {
     }
 }
 
-fn get_disclaim(i: u32, hints: &Vec<String>) -> String {
+// Returns a disclaimer for the number of tries left
+fn get_disclaimer(i: u32, hints: &Vec<String>) -> String {
     let disclaimer = if i != 1 {
         format!("{} {}", (i).to_string().blue(), "Tries Remaining...".blue())
     } else {
@@ -197,9 +145,86 @@ fn get_disclaim(i: u32, hints: &Vec<String>) -> String {
     }
 }
 
-
+// Clears the screen
 fn clear() {
     for _ in 0..1000 {
         println!("\n");
     }
-} 
+}
+
+/*  Checks for characters which are in the correct
+    position and removes them after marking the position
+    as correct in the check_vec vector
+*/
+fn mark_correct(
+    ans_letters: &mut Vec<char>,
+    word_letters: &mut Vec<char>,
+    check_vec: &mut Vec<char>,
+) {
+    let length = WORD_LENGTH;
+    let mut check: char;
+    for i in 0..length {
+        if ans_letters[i] == word_letters[i] {
+            ans_letters[i] = ' ';
+            word_letters[i] = ' ';
+            check = 'g';
+        } else {
+            check = ' ';
+        }
+        check_vec.push(check);
+    }
+}
+
+/*  Checks for every character in the input word which
+    also present in the answer and removes them both after
+    marking the position as wrong position but correct letter
+    in the check_vec vector
+*/
+fn mark_incorrect(
+    ans_letters: &mut Vec<char>,
+    word_letters: &mut Vec<char>,
+    check_vec: &mut Vec<char>,
+) {
+    let length = WORD_LENGTH;
+
+    for i in 0..length {
+        let mut flag = false;
+
+        if check_vec[i] == ' ' {
+            for _ in 0..length {
+                let letter = word_letters[i];
+                if ans_letters.contains(&letter) {
+                    // Gets position of the letter in the answer
+                    let pos = ans_letters
+                        .iter()
+                        .position(|&x| x == letter)
+                        .expect("Failed to find letter in answer");
+
+                    flag = true;
+                    check_vec[i] = 'y';
+                    word_letters[i] = ' ';
+                    ans_letters[pos] = ' ';
+                    break;
+                }
+            }
+            if flag == false {
+                check_vec[i] = 'w';
+            }
+        }
+    }
+}
+
+// Displays the end screen
+fn show_end_screen(won: bool, answer: &String) {
+    // End Screen
+    if won {
+        println!("\n{}", "You Won!".purple());
+    } else {
+        println!("\n{}", "You Lost!".red());
+        println!(
+            "{} {}",
+            "The word was".green(),
+            answer.to_ascii_uppercase().truecolor(0, 255, 64).bold()
+        );
+    }
+}
