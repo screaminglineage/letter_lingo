@@ -6,14 +6,20 @@ use config::{MAX_TRIES, WORD_LENGTH};
 
 mod handlers {
     pub mod ui_handler;
-    pub mod display_handler;
+    pub mod game_handler;
     pub mod word_handler;
+    pub mod menu_handler;
 }
-use handlers::ui_handler::*;
-use handlers::display_handler::*;
-use handlers::word_handler::*;
+use handlers::{
+    ui_handler::*,
+    game_handler::*,
+    word_handler::*,
+    menu_handler
+};
 
 fn main() {
+    menu_handler::display_menu();
+
     let words = get_word_file(NORMAL_WORDS);
     loop {
         clear();
