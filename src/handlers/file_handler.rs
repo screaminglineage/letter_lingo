@@ -20,3 +20,4 @@ pub fn get_word(words: &Vec<String>) -> &String {
     let i = rng.gen_range(0..words.len());
     &words[i]
 }
+

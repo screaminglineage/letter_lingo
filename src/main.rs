@@ -1,29 +1,29 @@
 use colored::Colorize;
 
 mod config;
-use config::NORMAL_WORDS;
-use config::{MAX_TRIES, WORD_LENGTH};
+use config::*;
 
 mod handlers {
     pub mod ui_handler;
     pub mod game_handler;
-    pub mod word_handler;
+    pub mod file_handler;
     pub mod menu_handler;
 }
 use handlers::{
     ui_handler::*,
     game_handler::*,
-    word_handler::*,
+    file_handler::*,
     menu_handler
 };
 
 fn main() {
     menu_handler::display_menu();
+   
 
-    let words = get_word_file(NORMAL_WORDS);
+    let words = get_word_file(WORDS_FILE);
     loop {
         clear();
-        let answer = get_word(&words);
+        let answer = get_word(&words).to_lowercase();
         println!("{answer}"); // FOR DEBUGGING, REMOVE LATER
         let mut hints: Vec<String> = Vec::new();
         let mut won = false;
@@ -53,7 +53,7 @@ fn main() {
             "{} {} {}",
             "Press".blue(),
             "ENTER".blue().bold(),
-            "to Continue...".blue()
+            "to Play Again...".blue()
         ));
     }
 }
