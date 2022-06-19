@@ -5,17 +5,24 @@ use colored::Colorize;
 
 pub fn display_menu() {
     let menu = 
-        format!("{}\n{}\n{}\n{}",
-                "<CHOOSE AN OPTION>", 
-                "<1> Play",
-                "<2> See Instructions",                
-                "<3> Exit" 
+        format!("{}\n\n\n{}\n{}\n{}\n\n",
+                "<MAIN MENU>"
+                  .cyan().bold(), 
+                "<1> Play"
+                  .truecolor(0, 255, 64).bold(),
+                "<2> See Instructions"
+                  .blue().bold(),
+                "<3> Exit"
+                  .red().bold() 
     );
     loop {
         clear();
         println!("{}", menu);
         match take_input(
-            "Choose an Option: "
+            format!("{}", 
+                           "Choose an Option: "
+                              .purple()
+                        )
                     .to_string())
                     .parse::<u8>() {
             Ok(1) => break,

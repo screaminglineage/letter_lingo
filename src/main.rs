@@ -24,7 +24,7 @@ fn main() {
     loop {
         clear();
         let answer = get_word(&words).to_lowercase();
-        println!("{answer}"); // FOR DEBUGGING, REMOVE LATER
+        // println!("{answer}"); // FOR DEBUGGING, REMOVE LATER
         let mut hints: Vec<String> = Vec::new();
         let mut won = false;
 
@@ -49,12 +49,9 @@ fn main() {
             }
         }
         show_end_screen(won, &answer);
-        pause(format!(
-            "{} {} {}",
-            "Press".blue(),
-            "ENTER".blue().bold(),
-            "to Play Again...".blue()
-        ));
+        if go_back() {
+            menu_handler::display_menu();
+        } 
     }
 }
 
@@ -75,4 +72,21 @@ fn check_input_loop(user_input: &mut String, disclaimer: &String, hints: &Vec<St
         );
         clear();
     }
+}
+
+
+fn go_back() -> bool {
+    let back = take_input(
+        format!("{}", 
+                      "Enter 'm' or 'menu' to Go Back or Press ENTER to Play Again: "
+                        .blue()
+                        .bold()
+                    )
+                );
+    if back.to_lowercase() == "m"
+       || back.to_lowercase() == "menu" {
+        return true;
+       } else {
+        false
+       }
 }
